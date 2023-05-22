@@ -14,7 +14,7 @@ async def make_request(
     headers: Union[Headers, dict],
     query: Optional[dict] = None,
     data: Union[CustomFormData, JsonPayload] = None,
-    timeout: int = 60,
+    timeout: int = 1000,
 ):
     data = create_dict_if_not(data=data)
     query = create_dict_if_not(data=query)
