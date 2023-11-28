@@ -18,7 +18,7 @@ async def make_request(
     data = create_dict_if_not(data=data)
     query = create_dict_if_not(data=query)
 
-    query = {key: value if isinstance(value, (str, int, float)) else str(value) for key, value in query.items()}
+    query = {key: str(value) if isinstance(value, bool) else value for key, value in query.items()}
 
     async with async_timeout.timeout(delay=timeout):
         async with aiohttp.ClientSession(headers=headers) as session:
