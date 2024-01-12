@@ -48,6 +48,7 @@ def route(
     name: Optional[str] = None,
     callbacks: Optional[List[BaseRoute]] = None,
     openapi_extra: Optional[Dict[str, Any]] = None,
+    request_timeout: int = 60,
 ):
     """
 
@@ -98,6 +99,7 @@ def route(
         https://fastapi.tiangolo.com/advanced/openapi-callbacks/
     :param openapi_extra: See documentation for details -
         https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/
+    :param request_timeout: request timeout to inner service, default is 60 sec
 
     :return: wrapped endpoint result as is
     """
@@ -133,10 +135,8 @@ def route(
         async def inner(request: Request, response: Response, **kwargs):
             scope = request.scope
             scope_method = scope["method"].lower()
-            content_type = str(request.headers.get('Content-Type'))
-            request_form = (
-                await request.form() if 'x-www-form-urlencoded' in content_type else None
-            )
+            content_type = str(request.headers.get("Content-Type"))
+            request_form = await request.form() if "x-www-form-urlencoded" in content_type else None
 
             prepare_microservice_path = f"{service_url}{gateway_path}"
             if service_path:
@@ -146,7 +146,6 @@ def route(
             request_body = await unzip_body_object(
                 necessary_params=body_params,
                 all_params=kwargs,
-
             )
 
             request_query = await unzip_query_params(
@@ -168,16 +167,13 @@ def route(
             )
 
             try:
-                (
-                    resp_data,
-                    status_code_from_service,
-                    microservice_headers,
-                ) = await make_request(
+                (resp_data, status_code_from_service, microservice_headers,) = await make_request(
                     url=microservice_url,
                     method=scope_method,
                     data=request_data,
                     query=request_query,
                     headers=request_headers,
+                    timeout=request_timeout,
                 )
 
             except ClientConnectorError:
